@@ -1,9 +1,7 @@
 name: Sync Dify Images to GHCR
 
 on:
-  workflow_dispatch:  # 允许手动点击按钮触发
-  schedule:
-    - cron: '0 2 * * *' # (可选) 每天凌晨2点自动同步一次
+  workflow_dispatch:
 
 jobs:
   sync-images:
@@ -13,21 +11,46 @@ jobs:
       packages: write
 
     steps:
-      # 1. 登录到 GitHub 容器仓库 (GHCR)
+      # 1. 登录
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2. 同步 Redis
+      # 2. 同步 Redis (示例)
       - name: Sync Redis
         run: |
-          echo "正在拉取 redis:6-alpine..."
           docker pull redis:6-alpine
+          # 确保这里用的是全小写的用户名
           docker tag redis:6-alpine ghcr.io/michelle13q/dify-image/redis:6-alpine
-          echo "正在推送 redis 到你的仓库..."
           docker push ghcr.io/michelle13q/dify-image/redis:6-alpine
+          
+      # 3. 同步 Postgres
+      - name: Sync Postgres
+        run: |
+          docker pull postgres:15-alpine
+          docker tag postgres:15-alpine ghcr.io/michelle13q/dify-image/postgres:15-alpine
+          docker push ghcr.io/michelle13q/dify-image/postgres:15-alpine
 
-   
+      # 4. 同步 Dify API
+      - name: Sync Dify API
+        run: |
+          docker pull langgenius/dify-api:1.13.3
+          docker tag langgenius/dify-api:1.13.3 ghcr.io/michelle13q/dify-image/dify-api:1.13.3
+          docker push ghcr.io/michelle13q/dify-image/dify-api:1.13.3
+          
+      # 5. 同步 Dify Web
+      - name: Sync Dify Web
+        run: |
+          docker pull langgenius/dify-web:1.13.3
+          docker tag langgenius/dify-web:1.13.3 ghcr.io/michelle13q/dify-image/dify-web:1.13.3
+          docker push ghcr.io/michelle13q/dify-image/dify-web:1.13.3
+
+      # 6. 同步 Dify Plugin Daemon
+      - name: Sync Dify Plugin Daemon
+        run: |
+          docker pull langgenius/dify-plugin-daemon:0.5.2-local
+          docker tag langgenius/dify-plugin-daemon:0.5.2-local ghcr.io/michelle13q/dify-image/dify-plugin-daemon:0.5.2-local
+          docker push ghcr.io/michelle13q/dify-image/dify-plugin-daemon:0.5.2-local
