@@ -1,0 +1,53 @@
+name: Sync Docker Images
+
+on:
+  workflow_dispatch:  # 允许手动点击按钮触发
+  schedule:
+    - cron: '0 0 * * *' # (可选) 每天午夜自动同步一次
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # 必须有写入包的权限
+
+    steps:
+      # 1. 登录到 GitHub 容器仓库 (GHCR)
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2. 拉取并推送 Redis
+      - name: Sync Redis
+        run: |
+          # 拉取原始镜像
+          docker pull redis:6-alpine
+          # 打上 GitHub 的标签 (注意：用户名和仓库名要换成你自己的)
+          docker tag redis:6-alpine ghcr.io/${{ github.repository }}/redis:6-alpine
+          # 推送到你的 GitHub 仓库
+          docker push ghcr.io/${{ github.repository }}/redis:6-alpine
+
+      # 3. 拉取并推送 Postgres
+      - name: Sync Postgres
+        run: |
+          docker pull postgres:15-alpine
+          docker tag postgres:15-alpine ghcr.io/${{ github.repository }}/postgres:15-alpine
+          docker push ghcr.io/${{ github.repository }}/postgres:15-alpine
+
+      # 4. 拉取并推送 Dify API
+      - name: Sync Dify API
+        run: |
+          docker pull langgenius/dify-api:1.13.3
+          docker tag langgenius/dify-api:1.13.3 ghcr.io/${{ github.repository }}/dify-api:1.13.3
+          docker push ghcr.io/${{ github.repository }}/dify-api:1.13.3
+          
+      # 5. 拉取并推送 Dify Web
+      - name: Sync Dify Web
+        run: |
+          docker pull langgenius/dify-web:1.13.3
+          docker tag langgenius/dify-web:1.13.3 ghcr.io/${{ github.repository }}/dify-web:1.13.3
+          docker push ghcr.io/${{ github.repository }}/dify-web:1.13.3
