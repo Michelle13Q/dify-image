@@ -28,3 +28,6 @@ jobs:
           docker pull redis:6-alpine
           docker tag redis:6-alpine ghcr.io/michelle13q/dify-image/redis:6-alpine
           echo "正在推送 redis 到你的仓库..."
+          docker push ghcr.io/michelle13q/dify-image/redis:6-alpine
+
+   
